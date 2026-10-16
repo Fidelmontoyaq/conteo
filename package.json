@@ -1,0 +1,37 @@
+{
+  "name": "acta-fiscalizador-local",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "postinstall": "node scripts/vendorizar.mjs",
+    "vendorizar": "node scripts/vendorizar.mjs",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "evaluar": "vite-node scripts/evaluar.ts --"
+  },
+  "dependencies": {
+    "pdfjs-dist": "3.11.174",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-dropzone": "^14.2.9",
+    "react-zoom-pan-pinch": "^3.6.1",
+    "tesseract.js": "^5.1.1",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@tesseract.js-data/eng": "^1.0.0",
+    "@tesseract.js-data/spa": "^1.0.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.41",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2",
+    "vitest": "^2.1.9"
+  }
+}
