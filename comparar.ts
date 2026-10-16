@@ -4,7 +4,7 @@ import { validarActa } from '../hooks/useValidacionActa';
 export interface Diferencia { clave: string; etiqueta: string; a: string; b: string; cambia: boolean }
 
 export const textoCelda = (c: CeldaVoto): string =>
-  c.estado === 'ANULADA' ? 'NEGRO' : c.estado === 'VACIA' ? '—' : String(c.valor ?? '?');
+  c.estado === 'ANULADA' ? 'NEGRO' : c.estado === 'VACIA' ? '—' : c.estado === 'AMBIGUA' ? `AMBIGUA${c.texto_ocr ? ` «${c.texto_ocr}»` : ''}` : c.estado === 'ERROR' ? 'ERROR' : String(c.valor ?? '?');
 
 // Compara dos lecturas del mismo acta (original vs reescrita), campo por campo.
 export function compararActas(a: ActaElectoral, b: ActaElectoral): Diferencia[] {

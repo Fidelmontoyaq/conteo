@@ -8,7 +8,7 @@ export function exportarActaJSON(
   versiones: ActaGuardada[] = [],
 ): void {
   const payload = {
-    version_esquema: '1.0',
+    version_esquema: '1.1', // 1.1: celdas vacías/negras con valor null; estados AMBIGUA/ERROR; estado_ocr, texto_ocr, digitos, motivos, lectura_meta
     exportado_en: new Date().toISOString(),
     acta,
     resumen_validacion: resumen,

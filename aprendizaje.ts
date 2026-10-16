@@ -24,7 +24,7 @@ export async function cargarMuestras(): Promise<number> {
       r.onerror = () => reject(r.error);
     });
     db.close();
-    agregarMuestras(filas.map((f) => ({ x: f.x, y: f.y })));
+    agregarMuestras(filas.map((f) => ({ x: f.x, y: f.y, acta: f.acta })));
     return filas.length;
   } catch { return 0; }
 }
@@ -43,12 +43,14 @@ async function guardar(ms: Muestra[]) {
 }
 
 // Devuelve true si aprendió algo. Solo aprende si el número de casilleros con tinta == nº de dígitos del valor.
-export function aprenderCelda(c: CeldaVoto): boolean {
+// `acta` = hash del documento: cada muestra recuerda de qué acta salió para poder EXCLUIRLA al evaluar
+// (no se debe entrenar y medir con la misma acta). Las muestras guardadas antes de esta versión no tienen acta.
+export function aprenderCelda(c: CeldaVoto, acta?: string): boolean {
   if (c.estado !== 'MANUSCRITO' || c.valor === null || !c.vectores) return false;
   const ds = String(c.valor);
   const vs = c.vectores.filter((v): v is number[] => !!v);
   if (vs.length !== ds.length) return false;
-  const ms = vs.map((x, i) => ({ x, y: Number(ds[i]) }));
+  const ms: Muestra[] = vs.map((x, i) => ({ x, y: Number(ds[i]), acta }));
   agregarMuestras(ms);
   void guardar(ms);
   return true;

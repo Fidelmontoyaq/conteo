@@ -4,6 +4,7 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useActaStore } from '../store/actaStore';
 import { useOCR } from '../hooks/useOCR';
 import { COLOR_CAJA, clasificarConfianza } from '../utils/clasificarConfianza';
+import { esIncierta, pendiente } from '../utils/celdas';
 import { COLOR_ZONA, ETIQUETA_ZONA, ZONAS } from '../utils/plantilla';
 import { ELECCIONES, type BoundingBox } from '../types/acta';
 
@@ -92,13 +93,15 @@ export default function VisorActa() {
     if (autoRelectura && acta) void releerZonas(); // ajuste fino: relee al soltar
   };
 
-  const marcasVotos = (z: BoundingBox) => {
+  const marcasVotos = (z: BoundingBox, bordes?: number[]) => {
     const rh = z.h / filas;
+    // Bordes de fila realmente usados al recortar (ajustados a las líneas impresas) si el acta ya se leyó
+    const ys = bordes && bordes.length === filas + 1 ? bordes : Array.from({ length: filas + 1 }, (_, i) => z.y + i * rh);
     const L = Math.min(z.w * 0.07, rh * 0.5);
     const T = rh * 0.28;
     const el: JSX.Element[] = [];
     for (let i = 0; i <= filas; i++) {
-      const y = z.y + i * rh;
+      const y = ys[i];
       el.push(<line key={`a${i}`} x1={z.x} x2={rejilla ? z.x + z.w : z.x + L} y1={y} y2={y} />);
       if (!rejilla) el.push(<line key={`b${i}`} x1={z.x + z.w - L} x2={z.x + z.w} y1={y} y2={y} />);
     }
@@ -153,7 +156,7 @@ export default function VisorActa() {
                         <g key={n} stroke={COLOR_ZONA[n]} fill={act ? COLOR_ZONA[n] : 'none'} fillOpacity={0.06} strokeWidth={act ? sw * 1.8 : sw} strokeOpacity={act ? 1 : 0.8}>
                           <rect x={z.x} y={z.y} width={z.w} height={z.h} />
                           {(n === 'votos_provincial' || n === 'votos_distrital') && (
-                            <g fill="none" strokeWidth={sw * 0.6} strokeOpacity={rejilla ? 0.4 : 0.7}>{marcasVotos(z)}</g>
+                            <g fill="none" strokeWidth={sw * 0.6} strokeOpacity={rejilla ? 0.4 : 0.7}>{marcasVotos(z, n === 'votos_provincial' ? acta?.lectura_meta?.geometria.provincial.bordes : acta?.lectura_meta?.geometria.distrital.bordes)}</g>
                           )}
                           {(rotulos || act) && (
                             <text x={z.x} y={z.y - W / 220} fontSize={W / 105} fill={COLOR_ZONA[n]} stroke="#fff" strokeWidth={W / 900} paintOrder="stroke" fontWeight={700}>{ETIQUETA_ZONA[n]}</text>
@@ -170,9 +173,9 @@ export default function VisorActa() {
                     const c = o[e];
                     if (!c.bbox) return null;
                     const sel = seleccion?.id === o.id && seleccion.eleccion === e;
-                    const dudosa = c.estado !== 'ANULADA' && c.confianza < 0.75 && !c.verificada;
+                    const dudosa = c.estado !== 'ANULADA' && pendiente(c);
                     const visible = sel || c.estado === 'MANUSCRITO' || dudosa;
-                    const color = COLOR_CAJA[clasificarConfianza(c.confianza)];
+                    const color = esIncierta(c) ? COLOR_CAJA.OBSERVADO_TRAZO_DUDOSO : COLOR_CAJA[clasificarConfianza(c.confianza)];
                     return (
                       <div key={`${o.id}-${e}`} onClick={() => !editando && seleccionar({ id: o.id, eleccion: e })}
                         title={`${o.codigo} ${o.nombre_partido} (${e}): ${c.estado === 'MANUSCRITO' ? c.valor ?? '?' : c.estado}`}
